@@ -19,11 +19,13 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)  // Disable CSRF for simplicity in this example
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()  // Allow public access to these endpoints
+                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/create-capsule").permitAll()  // Allow public access to these endpoints
+                    //    .requestMatchers("/api/auth/create-capsule").authenticated() // Require authentication
                         .anyRequest().authenticated()  // Require authentication for other requests
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)  // Use stateless session (JWT)
+
                 );
 
         return http.build();

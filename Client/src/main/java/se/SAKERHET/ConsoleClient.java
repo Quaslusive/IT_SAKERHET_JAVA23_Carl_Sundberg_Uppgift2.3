@@ -60,16 +60,18 @@ public class ConsoleClient {
         }
     }
 
-    private static String loginUser(String email, String password) {
+    public static String loginUser(String email, String password) {
         try {
             String payload = "email=" + email + "&password=" + password;
-            String response = httpClient.sendPostRequest("/login", payload);
+            String response = httpClient.sendPostRequest("/login", payload);  // No JWT headers needed
             return response;
         } catch (Exception e) {
             System.out.println("Error logging in: " + e.getMessage());
+            e.printStackTrace();  // Print the stack trace for more details
             return null;
         }
     }
+
 
     private static void handleAuthenticatedActions(String token) {
         Scanner scanner = new Scanner(System.in);
@@ -100,10 +102,11 @@ public class ConsoleClient {
     private static void createCapsule(String token, String message) {
         try {
             String payload = "message=" + message;
-            String response = httpClient.sendPostRequest("/create-capsule", payload + "&token=" + token);
+            String response = httpClient.sendPostRequest("/send", payload + "&token=" + token);
             System.out.println("Capsule created: " + response);
         } catch (Exception e) {
             System.out.println("Error creating capsule: " + e.getMessage());
+            e.printStackTrace();  // Print stack trace for more details
         }
     }
 }

@@ -1,7 +1,9 @@
 package se.SAKERHET;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -15,6 +17,12 @@ public class HttpClient {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        /*
+        if (token != null && !token.isEmpty()) {
+            conn.setRequestProperty("Authorization", "Bearer " + token);  // Add JWT token
+        }
+
+         */
         conn.setDoOutput(true);
 
         try (OutputStream os = conn.getOutputStream()) {
@@ -23,17 +31,27 @@ public class HttpClient {
         }
 
         int responseCode = conn.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"))) {
-                StringBuilder response = new StringBuilder();
-                String responseLine;
-                while ((responseLine = br.readLine()) != null) {
-                    response.append(responseLine.trim());
-                }
-                return response.toString();
+        InputStream responseStream = (responseCode >= 200 && responseCode < 300) ?
+                conn.getInputStream() : conn.getErrorStream();
+
+        if (responseStream == null) {
+            throw new RuntimeException("Failed : HTTP error code : " + responseCode + ". No response body.");
+        }
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(responseStream, StandardCharsets.UTF_8))) {
+            StringBuilder response = new StringBuilder();
+            String responseLine;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
             }
-        } else {
-            throw new RuntimeException("Failed : HTTP error code : " + responseCode);
+            System.out.println("Responds code: " + responseCode);
+            System.out.println("Responds code: " + response);
+
+            if (responseCode >= 200 && responseCode < 300) {
+                return response.toString();
+            } else {
+                throw new RuntimeException("Failed : HTTP error code : " + responseCode + ". Response: " + response);
+            }
         }
     }
 }

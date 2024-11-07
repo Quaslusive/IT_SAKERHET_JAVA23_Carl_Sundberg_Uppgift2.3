@@ -1,6 +1,7 @@
 package se.sakerhet.server.config;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.io.Decoders;
@@ -37,34 +38,40 @@ public class JwtTokenProvider {
                 .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .signWith(key, SignatureAlgorithm.HS512)  // Användning av SecretKey med algoritmen
+                .signWith(key, SignatureAlgorithm.HS256)  // Användning av SecretKey med algoritmen
                 .compact();
     }
 
     // Hämta e-post från JWT-token
     public String getEmailFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)  // Använd nyckeln för att verifiera token
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-
-        return claims.getSubject();
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key)  // Ensure this is the correct signing key
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return claims.getSubject();
+        } catch (Exception e) {
+            // Log the exception and return null if the token is invalid
+            System.err.println("Invalid token: " + e.getMessage());
+            return null;
+        }
     }
 
-    // Validera JWT-token
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
-                    .setSigningKey(key)  // Använd nyckeln för verifiering
+                    .setSigningKey(key)
                     .build()
                     .parseClaimsJws(token);
             return true;
-        } catch (Exception e) {
-            // Hantera undantag om token är ogiltig
+        } catch (JwtException | IllegalArgumentException e) {
+            // Log the reason for failure and return false
+            System.err.println("Token validation failed: " + e.getMessage());
             return false;
         }
     }
+
 
     // Generera en Base64-kodad nyckel (endast för engångsanvändning)
     public static class KeyGenerator {
