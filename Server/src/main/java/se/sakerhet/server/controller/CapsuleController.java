@@ -1,5 +1,61 @@
 package se.sakerhet.server.controller;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+import se.sakerhet.server.entity.Capsule;
+import se.sakerhet.server.entity.User;
+import se.sakerhet.server.service.CapsuleService;
+import se.sakerhet.server.service.UserService;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/capsules")
+public class CapsuleController {
+
+    private final CapsuleService capsuleService;
+    private final UserService userService;
+
+    public CapsuleController(CapsuleService capsuleService, UserService userService) {
+        this.capsuleService = capsuleService;
+        this.userService = userService;
+    }
+
+    // Create a new capsule
+    @PostMapping("/create")
+    public ResponseEntity<String> createCapsule(@RequestBody String message, Authentication authentication) throws Exception {
+        String userEmail = authentication.getName();
+        User user = userService.findByEmail(userEmail).orElseThrow(() ->
+                new RuntimeException("User not found"));
+
+        Capsule capsule = capsuleService.createCapsule(user, message);
+        return ResponseEntity.ok("Capsule created with ID: " + capsule.getId());
+    }
+
+    // Retrieve all capsules for the authenticated user
+    @GetMapping
+    public ResponseEntity<List<Capsule>> getCapsules(Authentication authentication) {
+        try {
+            String userEmail = authentication.getName();
+            User user = userService.findByEmail(userEmail).orElseThrow(() ->
+                    new RuntimeException("User not found"));
+
+            List<Capsule> capsules = capsuleService.getCapsulesByUser(user);
+            return ResponseEntity.ok(capsules);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+}
+
+
+
+
+
+/*
+package se.sakerhet.server.controller;
+
 import jakarta.servlet.http.HttpServletRequest;
 import se.sakerhet.server.config.JwtTokenProvider;
 import se.sakerhet.server.entity.User;
@@ -55,4 +111,4 @@ public class CapsuleController {
 
         return ResponseEntity.ok("Decrypted message: " + decryptedMessage);
     }
-}
+}*/

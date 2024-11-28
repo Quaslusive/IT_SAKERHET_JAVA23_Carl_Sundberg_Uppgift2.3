@@ -5,10 +5,10 @@ import java.util.Scanner;
 public class ConsoleClient {
 
     private static final HttpClient httpClient = new HttpClient();
-
+    private static String token;
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        String token = null;
+     //   String token = null;
 
         while (true) {
             System.out.println("1. Register");
@@ -24,7 +24,7 @@ public class ConsoleClient {
                     String email = scanner.nextLine();
                     System.out.print("Enter your password: ");
                     String password = scanner.nextLine();
-                    registerUser(email, password);
+                   registerUser(email, password);
                     break;
 
                 case 2:
@@ -60,6 +60,19 @@ public class ConsoleClient {
         }
     }
 
+/*    public static String loginUser(String email, String password) {
+        try {
+            String payload = "email=" + email + "&password=" + password;
+            String response = httpClient.sendPostRequest("/login", payload, null);
+            return response;
+        } catch (Exception e) {
+            System.out.println("Error logging in: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }*/
+
+
     public static String loginUser(String email, String password) {
         try {
             String payload = "email=" + email + "&password=" + password;
@@ -78,7 +91,8 @@ public class ConsoleClient {
 
         while (true) {
             System.out.println("1. Create Capsule");
-            System.out.println("2. Exit to Main Menu");
+            System.out.println("2. View Capsules");
+            System.out.println("3. Logout");
             System.out.print("Choose an option: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // Consume newline
@@ -91,7 +105,12 @@ public class ConsoleClient {
                     break;
 
                 case 2:
-                    return;
+                    viewCapsules();
+                    break;
+
+                case 3:
+                    System.out.println("Logged out.");
+                    return;  // Exit to the main menu
 
                 default:
                     System.out.println("Invalid choice. Try again.");
@@ -99,14 +118,37 @@ public class ConsoleClient {
         }
     }
 
+/*
     private static void createCapsule(String token, String message) {
         try {
             String payload = "message=" + message;
-            String response = httpClient.sendPostRequest("/send", payload + "&token=" + token);
+            String response = httpClient.sendPostRequest("/capsules/create", payload, token);
             System.out.println("Capsule created: " + response);
         } catch (Exception e) {
             System.out.println("Error creating capsule: " + e.getMessage());
             e.printStackTrace();  // Print stack trace for more details
+        }
+    }
+*/
+
+
+    private static void createCapsule(String token, String message) {
+        try {
+            String payload = "message=" + message;
+            String response = httpClient.sendPostRequest("/create", payload + "&token=" + token);
+            System.out.println("Capsule created: " + response);
+        } catch (Exception e) {
+            System.out.println("Error creating capsule: " + e.getMessage());
+            e.printStackTrace();  // Print stack trace for more details
+        }
+    }
+
+    private static void viewCapsules() {
+        try {
+            String response = httpClient.sendGetRequest("/capsules", token);
+            System.out.println("Your Capsules: " + response);
+        } catch (Exception e) {
+            System.out.println("Error fetching capsules: " + e.getMessage());
         }
     }
 }

@@ -2,11 +2,14 @@ package se.sakerhet.server.service;
 
 
 import org.springframework.stereotype.Service;
+import se.sakerhet.server.entity.Capsule;
+import se.sakerhet.server.entity.User;
 import se.sakerhet.server.repository.CapsuleRepository;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
+import java.util.List;
 
 @Service
 public class CapsuleService {
@@ -17,20 +20,22 @@ public class CapsuleService {
     public CapsuleService(CapsuleRepository capsuleRepository) {
         this.capsuleRepository = capsuleRepository;
     }
-/*
     // Metod för att kryptera och skapa en ny tidskapsel
     public Capsule createCapsule(User user, String message) throws Exception {
         Capsule capsule = new Capsule();
         capsule.setUser(user);  // Länka kapseln till användaren
 
         // Kryptera meddelandet och sätt det krypterade meddelandet i kapseln
-        byte[] encryptedMessage = encrypt(message);
+        byte[] encryptedMessage = encryptMessage(message).getBytes("UTF-8");
         capsule.setEncryptedMessage(encryptedMessage);
 
         // Spara kapseln i databasen
         return capsuleRepository.save(capsule);
-    }*/
-
+    }
+    // Retrieve capsules for a specific user
+    public List<Capsule> getCapsulesByUser(User user) {
+        return capsuleRepository.findByUser(user);
+    }
     public static String encryptMessage(String message) throws Exception {
         Cipher cipher = Cipher.getInstance("AES");
         SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes("UTF-8"), "AES");
