@@ -27,8 +27,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()  // Public endpoints
-                        .requestMatchers("/api/capsules/**").authenticated() // Protected endpoints
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/auth/capsules/**").authenticated()  // Require authentication
+                        .anyRequest().authenticated()  // Require authentication for all other endpoints
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // Stateless JWT

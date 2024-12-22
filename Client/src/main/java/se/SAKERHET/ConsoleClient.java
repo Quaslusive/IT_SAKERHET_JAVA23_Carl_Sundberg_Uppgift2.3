@@ -4,11 +4,11 @@ import java.util.Scanner;
 
 public class ConsoleClient {
 
-    private static final HttpClient httpClient = new HttpClient();
+    private static final HttpClient httpClient = new HttpClient("http://localhost:8080/api/auth");
     private static String token;
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-     //   String token = null;
 
         while (true) {
             System.out.println("1. Register");
@@ -24,15 +24,15 @@ public class ConsoleClient {
                     String email = scanner.nextLine();
                     System.out.print("Enter your password: ");
                     String password = scanner.nextLine();
-                   registerUser(email, password);
+                    registerUser(email, password);
                     break;
 
                 case 2:
                     System.out.print("Enter your email: ");
-                    email = scanner.nextLine();
+                    String emailLogin = scanner.nextLine();
                     System.out.print("Enter your password: ");
-                    password = scanner.nextLine();
-                    token = loginUser(email, password);
+                    String passwordLogin = scanner.nextLine();
+                    token = loginUser(emailLogin, passwordLogin);
                     if (token != null) {
                         System.out.println("Login successful! Token: " + token);
                         handleAuthenticatedActions(token);
@@ -53,38 +53,23 @@ public class ConsoleClient {
     private static void registerUser(String email, String password) {
         try {
             String payload = "email=" + email + "&password=" + password;
-            String response = httpClient.sendPostRequest("/register", payload);
+            String response = httpClient.sendPostRequest("/register", payload, null);
             System.out.println(response);
         } catch (Exception e) {
             System.out.println("Error registering user: " + e.getMessage());
         }
     }
 
-/*    public static String loginUser(String email, String password) {
+    private static String loginUser(String email, String password) {
         try {
             String payload = "email=" + email + "&password=" + password;
-            String response = httpClient.sendPostRequest("/login", payload, null);
-            return response;
+            return httpClient.sendPostRequest("/login", payload, null);
         } catch (Exception e) {
             System.out.println("Error logging in: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
-    }*/
-
-
-    public static String loginUser(String email, String password) {
-        try {
-            String payload = "email=" + email + "&password=" + password;
-            String response = httpClient.sendPostRequest("/login", payload);  // No JWT headers needed
-            return response;
-        } catch (Exception e) {
-            System.out.println("Error logging in: " + e.getMessage());
-            e.printStackTrace();  // Print the stack trace for more details
-            return null;
-        }
     }
-
 
     private static void handleAuthenticatedActions(String token) {
         Scanner scanner = new Scanner(System.in);
@@ -92,7 +77,8 @@ public class ConsoleClient {
         while (true) {
             System.out.println("1. Create Capsule");
             System.out.println("2. View Capsules");
-            System.out.println("3. Logout");
+            System.out.println("3. View Decrypted Capsules");
+            System.out.println("4. Logout");
             System.out.print("Choose an option: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // Consume newline
@@ -105,12 +91,16 @@ public class ConsoleClient {
                     break;
 
                 case 2:
-                    viewCapsules();
+                    viewCapsules(token);
                     break;
 
                 case 3:
+                    viewDecryptedCapsules(token);
+                    break;
+
+                case 4:
                     System.out.println("Logged out.");
-                    return;  // Exit to the main menu
+                    return;
 
                 default:
                     System.out.println("Invalid choice. Try again.");
@@ -118,7 +108,6 @@ public class ConsoleClient {
         }
     }
 
-/*
     private static void createCapsule(String token, String message) {
         try {
             String payload = "message=" + message;
@@ -126,31 +115,25 @@ public class ConsoleClient {
             System.out.println("Capsule created: " + response);
         } catch (Exception e) {
             System.out.println("Error creating capsule: " + e.getMessage());
-            e.printStackTrace();  // Print stack trace for more details
-        }
-    }
-*/
-
-
-    private static void createCapsule(String token, String message) {
-        try {
-            String payload = "message=" + message;
-            String response = httpClient.sendPostRequest("/create", payload + "&token=" + token);
-            System.out.println("Capsule created: " + response);
-        } catch (Exception e) {
-            System.out.println("Error creating capsule: " + e.getMessage());
-            e.printStackTrace();  // Print stack trace for more details
+            e.printStackTrace();
         }
     }
 
-
-
-    private static void viewCapsules() {
+    private static void viewCapsules(String token) {
         try {
             String response = httpClient.sendGetRequest("/capsules", token);
             System.out.println("Your Capsules: " + response);
         } catch (Exception e) {
             System.out.println("Error fetching capsules: " + e.getMessage());
+        }
+    }
+
+    private static void viewDecryptedCapsules(String token) {
+        try {
+            String response = httpClient.sendGetRequest("/capsules/decrypted", token);
+            System.out.println("Decrypted Capsules: " + response);
+        } catch (Exception e) {
+            System.out.println("Error fetching decrypted capsules: " + e.getMessage());
         }
     }
 }
