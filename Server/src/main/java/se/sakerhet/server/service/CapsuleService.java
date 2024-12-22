@@ -1,6 +1,6 @@
 package se.sakerhet.server.service;
 
-
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import se.sakerhet.server.entity.Capsule;
 import se.sakerhet.server.entity.User;
@@ -8,6 +8,7 @@ import se.sakerhet.server.repository.CapsuleRepository;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
@@ -15,40 +16,59 @@ import java.util.List;
 public class CapsuleService {
 
     private final CapsuleRepository capsuleRepository;
-    private static final String secretKey = "aesEncryptionKey";  // Minst 16 tecken
+
+    @Value("${encryption.secret}")
+    private String secretKey;
 
     public CapsuleService(CapsuleRepository capsuleRepository) {
         this.capsuleRepository = capsuleRepository;
     }
-    // Metod för att kryptera och skapa en ny tidskapsel
-    public Capsule createCapsule(User user, String message) throws Exception {
-        Capsule capsule = new Capsule();
-        capsule.setUser(user);  // Länka kapseln till användaren
 
-        // Kryptera meddelandet och sätt det krypterade meddelandet i kapseln
-        byte[] encryptedMessage = encryptMessage(message).getBytes("UTF-8");
-        capsule.setEncryptedMessage(encryptedMessage);
-
-        // Spara kapseln i databasen
-        return capsuleRepository.save(capsule);
+    // Create a new capsule
+    public Capsule createCapsule(User user, String message) {
+        try {
+            Capsule capsule = new Capsule();
+            capsule.setUser(user);
+            byte[] encryptedMessage = encryptMessage(message);
+            capsule.setEncryptedMessage(encryptedMessage);
+            return capsuleRepository.save(capsule);
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating capsule: " + e.getMessage(), e);
+        }
     }
+
     // Retrieve capsules for a specific user
     public List<Capsule> getCapsulesByUser(User user) {
         return capsuleRepository.findByUser(user);
     }
-    public static String encryptMessage(String message) throws Exception {
+
+    // Retrieve and decrypt capsules for a specific user
+    public List<String> getDecryptedCapsules(User user) {
+        try {
+            List<Capsule> capsules = capsuleRepository.findByUser(user);
+            List<String> decryptedMessages = new ArrayList<>();
+            for (Capsule capsule : capsules) {
+                decryptedMessages.add(decryptMessage(capsule.getEncryptedMessage()));
+            }
+            return decryptedMessages;
+        } catch (Exception e) {
+            throw new RuntimeException("Error decrypting capsules: " + e.getMessage(), e);
+        }
+    }
+
+    // Encrypt message
+    public byte[] encryptMessage(String message) throws Exception {
         Cipher cipher = Cipher.getInstance("AES");
         SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes("UTF-8"), "AES");
         cipher.init(Cipher.ENCRYPT_MODE, keySpec);
-        byte[] encryptedMessage = cipher.doFinal(message.getBytes("UTF-8"));
-        return Base64.getEncoder().encodeToString(encryptedMessage);
+        return cipher.doFinal(message.getBytes("UTF-8"));
     }
 
-    public static String decryptMessage(String encryptedMessage) throws Exception {
+    // Decrypt message
+    public String decryptMessage(byte[] encryptedMessage) throws Exception {
         Cipher cipher = Cipher.getInstance("AES");
         SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes("UTF-8"), "AES");
         cipher.init(Cipher.DECRYPT_MODE, keySpec);
-        byte[] decodedMessage = Base64.getDecoder().decode(encryptedMessage);
-        return new String(cipher.doFinal(decodedMessage), "UTF-8");
+        return new String(cipher.doFinal(encryptedMessage), "UTF-8");
     }
 }

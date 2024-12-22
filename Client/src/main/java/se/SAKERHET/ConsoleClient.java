@@ -143,6 +143,8 @@ public class ConsoleClient {
         }
     }
 
+
+
     private static void viewCapsules() {
         try {
             String response = httpClient.sendGetRequest("/capsules", token);
