@@ -20,7 +20,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Registrera användare med hashat lösenord
+    // Register user with hashed password
     public User registerUser(String email, String password) {
         User user = new User();
         user.setEmail(email);
@@ -28,17 +28,12 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // Hitta användare efter e-post
+    // Find user by email
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    // Hasha ett rått lösenord
-    public String hashPassword(String rawPassword) {
-        return passwordEncoder.encode(rawPassword);
-    }
-
-    // Verifiera att rått lösenord matchar det hashade lösenordet
+    // Verify if raw password matches the encoded password
     public boolean checkPassword(String rawPassword, String encodedPassword) {
         return passwordEncoder.matches(rawPassword, encodedPassword);
     }

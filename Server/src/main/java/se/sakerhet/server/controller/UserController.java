@@ -1,12 +1,15 @@
 package se.sakerhet.server.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import se.sakerhet.server.dto.UserRequest;
 import se.sakerhet.server.service.UserService;
 import se.sakerhet.server.config.JwtTokenProvider;
 import se.sakerhet.server.entity.User;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -21,22 +24,33 @@ public class UserController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    // Registreringsendpoint där lösenordet hashades
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestParam String email, @RequestParam String password) {
-        // Kontrollera om användaren redan finns
-        Optional<User> existingUser = userService.findByEmail(email);
-        if (existingUser.isPresent()) {
-            return ResponseEntity.badRequest().body("User with this email already exists");
-        }
-
-        // Registrera ny användare
-        userService.registerUser(email, password);  // Lösenordet hashas i UserService
+    public ResponseEntity<String> registerUser(@RequestBody UserRequest userRequest) {
+        userService.registerUser(userRequest.getEmail(), userRequest.getPassword());
         return ResponseEntity.ok("User registered successfully");
     }
 
-    // Inloggningsendpoint där lösenordet verifieras och JWT-token returneras om det är korrekt
     @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody UserRequest userRequest) {
+        String email = userRequest.getEmail();
+        String password = userRequest.getPassword();
+
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (userService.checkPassword(password, user.getPassword())) {
+            String token = jwtTokenProvider.generateToken(email);
+            return ResponseEntity.ok(token);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+        }
+    }
+
+
+
+
+
+    /*@PostMapping("/login")
     public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password) {
         Optional<User> user = userService.findByEmail(email);
 
@@ -53,5 +67,5 @@ public class UserController {
         // Om lösenordet är korrekt, generera JWT-token
         String token = jwtTokenProvider.generateToken(email);  // Generera JWT-token
         return ResponseEntity.ok(token);  // Returnera JWT-token till klienten
-    }
+    }*/
 }

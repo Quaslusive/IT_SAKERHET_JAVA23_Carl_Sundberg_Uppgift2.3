@@ -26,7 +26,21 @@ public class CapsuleController {
         this.capsuleService = capsuleService;
         this.userService = userService;
     }
+    @PostMapping("/create")
+    public ResponseEntity<String> createCapsule(@RequestBody CapsuleRequest capsuleRequest, Authentication authentication) {
+        try {
+            User user = userService.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
+            Capsule capsule = capsuleService.createCapsule(user, capsuleRequest.getMessage());
+            return ResponseEntity.ok("Capsule created with ID: " + capsule.getId());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error creating capsule: " + e.getMessage());
+        }
+    }
+
+
+/*
     @PostMapping("/create")
     public ResponseEntity<String> createCapsule(@RequestBody CapsuleRequest request, Authentication authentication) {
         try {
@@ -44,7 +58,7 @@ public class CapsuleController {
             logger.error("Error creating capsule: {}", e.getMessage());
             return ResponseEntity.badRequest().body("Error creating capsule: " + e.getMessage());
         }
-    }
+    }*/
 
     @GetMapping
     public ResponseEntity<List<Capsule>> getCapsules(Authentication authentication) {
