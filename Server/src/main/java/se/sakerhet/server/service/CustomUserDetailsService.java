@@ -24,5 +24,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                         user.getPassword(),
                         new ArrayList<>()))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
     }
 }

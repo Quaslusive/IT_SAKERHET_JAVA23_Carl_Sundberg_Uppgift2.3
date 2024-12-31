@@ -3,10 +3,12 @@ package se.SAKERHET;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
+
 import com.google.gson.Gson;
 
 public class HttpClient {
@@ -18,7 +20,8 @@ public class HttpClient {
     }
 
     public String sendPostRequest(String endpoint, Object payload, String token) throws Exception {
-        URL url = new URL(baseUrl + endpoint);
+        URI uri = new URI(baseUrl + endpoint);
+        URL url = uri.toURL();
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
 
@@ -66,25 +69,10 @@ public class HttpClient {
 
     private String processResponse(HttpURLConnection conn) throws Exception {
         int responseCode = conn.getResponseCode();
-        InputStream responseStream = (responseCode >= 200 && responseCode < 300) ?
-                conn.getInputStream() : conn.getErrorStream();
-
-        if (responseStream == null) {
-            throw new RuntimeException("Failed : HTTP error code : " + responseCode + ". No response body.");
-        }
-
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(responseStream, StandardCharsets.UTF_8))) {
-            StringBuilder response = new StringBuilder();
-            String responseLine;
-            while ((responseLine = br.readLine()) != null) {
-                response.append(responseLine.trim());
-            }
-
-            if (responseCode >= 200 && responseCode < 300) {
-                return response.toString();
-            } else {
-                throw new RuntimeException("Failed : HTTP error code : " + responseCode + ". Response: " + response);
-            }
+        try (var br = new BufferedReader(new InputStreamReader(
+                responseCode >= 200 && responseCode < 300 ? conn.getInputStream() : conn.getErrorStream(),
+                StandardCharsets.UTF_8))) {
+            return br.lines().collect(Collectors.joining(System.lineSeparator()));
         }
     }
 }
