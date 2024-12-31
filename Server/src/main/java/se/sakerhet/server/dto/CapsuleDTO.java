@@ -8,9 +8,8 @@ import lombok.Setter;
 public class CapsuleDTO {
 
     private String message;
-//Todo Check if needed
+
     public CapsuleDTO(String message) {
         this.message = message;
     }
-
 }

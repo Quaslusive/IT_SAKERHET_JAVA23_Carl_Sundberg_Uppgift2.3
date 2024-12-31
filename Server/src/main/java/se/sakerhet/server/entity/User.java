@@ -25,37 +25,13 @@ public class User implements UserDetails {
     @Column(name = "password", nullable = false)
     private String password;
 
-    // Return an empty list for now (no roles configured)
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.emptyList();
     }
 
-
     @Override
     public String getUsername() {
         return email;
     }
-
-    //Todo keep?
-/*
-    @Override
-    public boolean isAccountNonExpired() {
-        return true; // Adjust logic if needed
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true; // Adjust logic if needed
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true; // Adjust logic if needed
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true; // Adjust logic if needed
-    }*/
 }

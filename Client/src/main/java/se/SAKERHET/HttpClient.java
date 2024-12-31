@@ -56,7 +56,8 @@ public class HttpClient {
     }
 
     public String sendGetRequest(String endpoint, String token) throws Exception {
-        URL url = new URL(baseUrl + endpoint);
+        URI uri = new URI(baseUrl + endpoint);
+        URL url = uri.toURL();
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
 
