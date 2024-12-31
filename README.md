@@ -76,13 +76,9 @@ CREATE TABLE capsules (
 );
 ```
 
-Update the `application.properties` file in the server project:
+Debuging:
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/capsule_management
-spring.datasource.username=your_username
-spring.datasource.password=your_password
-spring.jpa.hibernate.ddl-auto=update
-jwt.secret=your_base64_encoded_secret
-jwt.expirationMs=3600000
+email: test@test.com
+password: test
 ```
 
