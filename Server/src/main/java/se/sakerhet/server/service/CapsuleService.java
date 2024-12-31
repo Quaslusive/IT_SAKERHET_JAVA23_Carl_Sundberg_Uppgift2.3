@@ -8,8 +8,8 @@ import se.sakerhet.server.repository.CapsuleRepository;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 @Service
@@ -24,7 +24,6 @@ public class CapsuleService {
         this.capsuleRepository = capsuleRepository;
     }
 
-    // Create a new capsule
     public Capsule createCapsule(User user, String message) {
         try {
             Capsule capsule = new Capsule();
@@ -37,12 +36,10 @@ public class CapsuleService {
         }
     }
 
-    // Retrieve capsules for a specific user
     public List<Capsule> getCapsulesByUser(User user) {
         return capsuleRepository.findByUser(user);
     }
 
-    // Retrieve and decrypt capsules for a specific user
     public List<String> getDecryptedCapsules(User user) {
         try {
             List<Capsule> capsules = capsuleRepository.findByUser(user);
@@ -56,19 +53,18 @@ public class CapsuleService {
         }
     }
 
-    // Encrypt message
+
     public byte[] encryptMessage(String message) throws Exception {
         Cipher cipher = Cipher.getInstance("AES");
-        SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes("UTF-8"), "AES");
+        SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "AES");
         cipher.init(Cipher.ENCRYPT_MODE, keySpec);
-        return cipher.doFinal(message.getBytes("UTF-8"));
+        return cipher.doFinal(message.getBytes(StandardCharsets.UTF_8));
     }
 
-    // Decrypt message
     public String decryptMessage(byte[] encryptedMessage) throws Exception {
         Cipher cipher = Cipher.getInstance("AES");
-        SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes("UTF-8"), "AES");
+        SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "AES");
         cipher.init(Cipher.DECRYPT_MODE, keySpec);
-        return new String(cipher.doFinal(encryptedMessage), "UTF-8");
+        return new String(cipher.doFinal(encryptedMessage), StandardCharsets.UTF_8);
     }
 }

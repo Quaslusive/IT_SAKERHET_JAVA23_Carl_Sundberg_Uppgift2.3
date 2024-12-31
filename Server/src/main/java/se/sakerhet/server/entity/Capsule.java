@@ -14,7 +14,6 @@ public class Capsule {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ManyToOne relationship with User, use JoinColumn to specify the foreign key column
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

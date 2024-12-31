@@ -1,7 +1,7 @@
 package se.SAKERHET;
 
 import com.google.gson.Gson;
-import se.sakerhet.server.dto.UserRequest;
+import se.sakerhet.server.dto.UserDTO;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,23 +10,24 @@ import java.util.Scanner;
 public class ConsoleClient {
 
     private static final HttpClient httpClient = new HttpClient("http://localhost:8080/api/auth");
-    private static String token;
 
     private static final String REGISTER_ENDPOINT = "/register";
     private static final String LOGIN_ENDPOINT = "/login";
     private static final String CAPSULES_CREATE_ENDPOINT = "/capsules/create";
-
+    private static final String CAPSULES_VIEW_ENDPOINT = "/capsules";
+    private static final String CAPSULES_DECRYPT_ENDPOINT = "/capsules/decrypted";
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
+            System.out.println("<<<< Create Encrypted Messages Application by \"Carl .S\" >>>>");
             System.out.println("1. Register");
             System.out.println("2. Login");
             System.out.println("3. Exit");
             System.out.print("Choose an option: ");
             int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            scanner.nextLine();
 
             switch (choice) {
                 case 1:
@@ -42,7 +43,7 @@ public class ConsoleClient {
                     String emailLogin = scanner.nextLine();
                     System.out.print("Enter your password: ");
                     String passwordLogin = scanner.nextLine();
-                    token = loginUser(emailLogin, passwordLogin);
+                    String token = loginUser(emailLogin, passwordLogin);
                     if (token != null) {
                         System.out.println("Login successful! Token: " + token);
                         handleAuthenticatedActions(token);
@@ -62,76 +63,30 @@ public class ConsoleClient {
 
     private static void registerUser(String email, String password) {
         try {
-            // Create a JSON payload using Gson
-            Gson gson = new Gson();
-            Map<String, String> payloadMap = new HashMap<>();
-            payloadMap.put("email", email);
-            payloadMap.put("password", password);
-            String payload = gson.toJson(payloadMap);
+            UserDTO userDTO = new UserDTO();
+            userDTO.setEmail(email);
+            userDTO.setPassword(password);
 
-            // Send POST request
-            String response = httpClient.sendPostRequest("/register", payload, null);
+            String response = httpClient.sendPostRequest(REGISTER_ENDPOINT, userDTO, null);
             System.out.println("Registration Successful: " + response);
         } catch (Exception e) {
             System.out.println("Error registering user: " + e.getMessage());
         }
     }
 
-
-/*    private static void registerUser(String email, String password) {
-        try {
-            String payload = "email=" + email + "&password=" + password;
-            String response = httpClient.sendPostRequest("/register", payload, null);
-            System.out.println(response);
-        } catch (Exception e) {
-            System.out.println("Error registering user: " + e.getMessage());
-        }
-    }*/
-
     private static String loginUser(String email, String password) {
         try {
-            // Create a UserRequest object
-            UserRequest userRequest = new UserRequest();
-            userRequest.setEmail(email);
-            userRequest.setPassword(password);
+            UserDTO userDTO = new UserDTO();
+            userDTO.setEmail(email);
+            userDTO.setPassword(password);
 
-            // Send POST request
-            return httpClient.sendPostRequest("/login", userRequest, null);
+            return httpClient.sendPostRequest(LOGIN_ENDPOINT, userDTO, null);
         } catch (Exception e) {
             System.out.println("Error logging in: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
     }
-
-
-
-/*    private static String loginUser(String email, String password) {
-        try {
-            Gson gson = new Gson();
-            Map<String, String> payloadMap = new HashMap<>();
-            payloadMap.put("email", email);
-            payloadMap.put("password", password);
-            String payload = gson.toJson(payloadMap);
-
-            return httpClient.sendPostRequest("/login", payload, null);
-        } catch (Exception e) {
-            System.out.println("Error logging in: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
-    }*/
-
-/*    private static String loginUser(String email, String password) {
-        try {
-            String payload = "email=" + email + "&password=" + password;
-            return httpClient.sendPostRequest("/login", payload, null);
-        } catch (Exception e) {
-            System.out.println("Error logging in: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
-    }*/
 
     private static void handleAuthenticatedActions(String token) {
         Scanner scanner = new Scanner(System.in);
@@ -143,7 +98,7 @@ public class ConsoleClient {
             System.out.println("4. Logout");
             System.out.print("Choose an option: ");
             int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            scanner.nextLine();
 
             switch (choice) {
                 case 1:
@@ -177,31 +132,17 @@ public class ConsoleClient {
             payloadMap.put("message", message);
             String payload = gson.toJson(payloadMap);
 
-            String response = httpClient.sendPostRequest("/capsules/create", payload, token);
+            String response = httpClient.sendPostRequest(CAPSULES_CREATE_ENDPOINT, payload, token);
             System.out.println("Capsule created: " + response);
         } catch (Exception e) {
             System.out.println("Error creating capsule: " + e.getMessage());
             e.printStackTrace();
         }
     }
-
-
-/*
-    private static void createCapsule(String token, String message) {
-        try {
-            String payload = "message=" + message;
-            String response = httpClient.sendPostRequest("/capsules/create", payload, token);
-            System.out.println("Capsule created: " + response);
-        } catch (Exception e) {
-            System.out.println("Error creating capsule: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-*/
 
     private static void viewCapsules(String token) {
         try {
-            String response = httpClient.sendGetRequest("/capsules", token);
+            String response = httpClient.sendGetRequest(CAPSULES_VIEW_ENDPOINT, token);
             System.out.println("Your Capsules: " + response);
         } catch (Exception e) {
             System.out.println("Error fetching capsules: " + e.getMessage());
@@ -210,7 +151,7 @@ public class ConsoleClient {
 
     private static void viewDecryptedCapsules(String token) {
         try {
-            String response = httpClient.sendGetRequest("/capsules/decrypted", token);
+            String response = httpClient.sendGetRequest(CAPSULES_DECRYPT_ENDPOINT, token);
             System.out.println("Decrypted Capsules: " + response);
         } catch (Exception e) {
             System.out.println("Error fetching decrypted capsules: " + e.getMessage());

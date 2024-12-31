@@ -20,20 +20,17 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Register user with hashed password
-    public User registerUser(String email, String password) {
+    public void registerUser(String email, String password) {
         User user = new User();
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
-        return userRepository.save(user);
+        userRepository.save(user);
     }
 
-    // Find user by email
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    // Verify if raw password matches the encoded password
     public boolean checkPassword(String rawPassword, String encodedPassword) {
         return passwordEncoder.matches(rawPassword, encodedPassword);
     }

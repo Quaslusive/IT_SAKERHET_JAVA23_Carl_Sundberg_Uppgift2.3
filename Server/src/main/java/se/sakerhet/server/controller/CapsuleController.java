@@ -5,7 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import se.sakerhet.server.dto.CapsuleRequest;
+
+import se.sakerhet.server.dto.CapsuleDTO;
 import se.sakerhet.server.entity.Capsule;
 import se.sakerhet.server.entity.User;
 import se.sakerhet.server.service.CapsuleService;
@@ -27,38 +28,19 @@ public class CapsuleController {
         this.userService = userService;
     }
     @PostMapping("/create")
-    public ResponseEntity<String> createCapsule(@RequestBody CapsuleRequest capsuleRequest, Authentication authentication) {
+    public ResponseEntity<String> createCapsule(@RequestBody CapsuleDTO capsuleDTO, Authentication authentication) {
         try {
             User user = userService.findByEmail(authentication.getName())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            Capsule capsule = capsuleService.createCapsule(user, capsuleRequest.getMessage());
-            return ResponseEntity.ok("Capsule created with ID: " + capsule.getId());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error creating capsule: " + e.getMessage());
-        }
-    }
-
-
-/*
-    @PostMapping("/create")
-    public ResponseEntity<String> createCapsule(@RequestBody CapsuleRequest request, Authentication authentication) {
-        try {
-            String userEmail = authentication.getName();
-            logger.info("Creating capsule for user: {}", userEmail);
-
-            User user = userService.findByEmail(userEmail)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            Capsule capsule = capsuleService.createCapsule(user, request.getMessage());
+            Capsule capsule = capsuleService.createCapsule(user, capsuleDTO.getMessage());
             logger.info("Capsule created with ID: {}", capsule.getId());
-
             return ResponseEntity.ok("Capsule created with ID: " + capsule.getId());
         } catch (Exception e) {
             logger.error("Error creating capsule: {}", e.getMessage());
             return ResponseEntity.badRequest().body("Error creating capsule: " + e.getMessage());
         }
-    }*/
+    }
 
     @GetMapping
     public ResponseEntity<List<Capsule>> getCapsules(Authentication authentication) {
